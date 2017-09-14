@@ -23,6 +23,11 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include "Message.h"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
 
 using namespace std;
 
@@ -35,7 +40,32 @@ using namespace std;
 #define MSG_LENGTH			1024
 #define HOSTNAME_LENGTH		256
 #define ERROR_LENGTH		4096
+#define BUF_SIZE            1024
+#define MAX_LINE_SZ         1024
 
+void do_grep(string cmd, int socket_fd){
+    
+    FILE* file;
+    char buf[BUF_SIZE];
+    ostringstream stm ;
+    char line[MAX_LINE_SZ] ;
+    if(!(file = popen(cmd.c_str(), "r"))){
+        return ;
+    }
+    string c;
+    
+    while(fgets(line, MAX_LINE_SZ, file)){
+        stm << line ;
+    }
+    pclose(file);
+    string result = stm.str();
+    Message my_msg(result.size(), result.c_str());
+    my_msg.send_msg(socket_fd);
+    cout <<stm.str();
+
+    return;
+    
+}
 
 int main(int argc, char ** argv) {
     //Set up socket 
@@ -123,26 +153,34 @@ int main(int argc, char ** argv) {
                     }
                 }
                 else{
-                    //Receive msg from clients
-                    int nbytes;
-                    if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
-                        if(nbytes <0){
-                            perror("server: recv");
+                    
+                    int nbytes = 0;
+                    Message my_msg;
+                    int length = my_msg.receive_int_msg(i);
+                    int temp = 0;
+                    cout <<  "Get : " << length << "\n";
+                    while(1){
+                        if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
+                            if(nbytes <0){
+                                perror("server: recv");
+                            }
+                            else{
+                                cout << "server: socket " << i << "hung up\n";
+                            }
+                            break;
                         }
-                        FD_CLR(i, &master);
+                        else{
+                            temp += nbytes;
+                            if(temp >= length)
+                                break;
+                        }
                     }
-                    else{
-                        //Do grep & send back result
-                        cout <<"Received: " << nbytes << "Bytes\n";
-                        for(int k = 0; k < nbytes; k++){
-                            cout << buf[k];
-                        }
-                        cout <<"\n";
-                        char temp[] ="Result from Grep";
-                        if(send(i, &temp, sizeof(temp), 0) == -1){
-                            perror("server: send");
-                        }
-                    }
+                    string my_str1(buf,length);
+                    do_grep(my_str1, i);
+
+                    close(i);
+                    FD_CLR(i,&master);
+
                 }
             }
         }

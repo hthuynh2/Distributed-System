@@ -15,6 +15,8 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include "Message.h"
+#include "limits.h"
 
 using namespace std;
 
@@ -54,11 +56,13 @@ int main(int argc, char ** argv) {
     //Wait for user input
     cout << "prompt>";
     string cmd_str;
-    cin >> cmd_str;
+//    cin >> cmd_str;
+    getline(cin, cmd_str);
     char cmd_buf[1024];
     for(int i = 0 ; i < (int)cmd_str.size(); i++){
         cmd_buf[i] = cmd_str[i];
     }
+    
     char buf[1024];
 
     //Connect to all VMS
@@ -127,34 +131,46 @@ int main(int argc, char ** argv) {
         }
         for(int i = 1 ; i <= max_fd; i++){
             if(FD_ISSET(i, &r_fds)){
-                int nbytes;
-                if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
-                    if(nbytes <0){
-                        perror("client: recv");
+                int nbytes = 0;
+                Message my_msg;
+                int length = my_msg.receive_int_msg(i);
+
+                int temp = 0;
+                cout << "Receive: " << length << "\n";
+                
+                while(1 && length!=0){
+                    if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
+                        if(nbytes <0){
+                            perror("client: recv");
+                        }
+                        else{
+                            cout << "client: socket " << i << "hung up\n";
+                        }
+                        break;
                     }
                     else{
-                        cout << "client: socket " << i << "hung up\n";
+                        temp += nbytes;
+                        results.push_back(buf);
+                        cout <<"Receive "<<nbytes << "from server\n" ;
+                        if(temp >= length)
+                            break;
                     }
-                    close(i);
-                    FD_CLR(i, &r_master);
                 }
-                else{
-                    //store results from other VMs
-                    cout <<"Receive "<<nbytes << "from server\n" ;
-                    for(int k = 0 ; k < nbytes; k++){
-                        cout << buf[k];
-                    }
-                    cout <<"\n";
-                    results.push_back(buf);
-                }
+                close(i);
+                FD_CLR(i, &r_master);
             }
             
+            
             if(FD_ISSET(i, &w_fds) && !sent_request[i] ){
-                //Send request to other VMs
+//              Send request to other VMs
                 sent_request[i] = true;
-                if(send(i, cmd_buf, cmd_str.size(), 0) == -1){
-                    perror("client: send");
+                cout<< "Client send:" << cmd_str.size() <<"\n";
+                Message cmd_msg(cmd_str.size(), cmd_str.c_str());
+                
+                if(cmd_msg.send_msg(i) == -1){
+                    perror("Client: send");
                 }
+
                 FD_CLR(i, &w_master);
             }
         }
