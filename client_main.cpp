@@ -1,54 +1,56 @@
 
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
+#include "common.h"
 #include "Message.h"
-#include "limits.h"
-
 using namespace std;
 
-#define PORT				4950
-#define PORT_STR            "4950"
-#define NUM_VMS				10
-#define TIMEOUT				250
-#define STDIN               0
-
-#define MSG_LENGTH			1024
-#define HOSTNAME_LENGTH		256
-#define ERROR_LENGTH		4096
 
 ////Change This
 string vm_hosts[NUM_VMS] = {
-    "192.168.56.102",
-    "fa17-cs425-g13-03.cs.illinois.edu",
-    "fa17-cs425-g13-03.cs.illinois.edu",
-    "fa17-cs425-g13-04.cs.illinois.edu",
-    "fa17-cs425-g13-05.cs.illinois.edu",
-    "fa17-cs425-g13-06.cs.illinois.edu",
-    "fa17-cs425-g13-07.cs.illinois.edu",
-    "fa17-cs425-g13-08.cs.illinois.edu",
-    "fa17-cs425-g13-09.cs.illinois.edu",
-    "fa17-cs425-g13-10.cs.illinois.edu"
+//    "192.168.56.102",
+    "hthuynh2@fa17-cs425-g13-01.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-02.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-03.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-04.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-05.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-06.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-07.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-08.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-09.cs.illinois.edu",
+    "hthuynh2@fa17-cs425-g13-10.cs.illinois.edu"
 };
-
-
 
 int socket_fds[NUM_VMS];
 int num_alive = 0;
+vector<vector<string> > results;
+int results_count[NUM_VMS];
 bool failed[NUM_VMS] = {true};
+
+void do_grep(string cmd, int socket_fd){
+    
+    FILE* file;
+    char buf[BUF_SIZE];
+    ostringstream stm ;
+    char line[MAX_LINE_SZ] ;
+    if(!(file = popen(cmd.c_str(), "r"))){
+        return ;
+    }
+    string c;
+    int count = 0;
+
+    while(fgets(line, MAX_LINE_SZ, file)){
+        stm << line;
+    }
+    
+    pclose(file);
+    string result = stm.str();
+    Message my_msg(result.size(), result.c_str());
+    my_msg.send_msg(socket_fd);
+    cout <<stm.str();
+    
+    return;
+}
+
+
 
 int main(int argc, char ** argv) {
     int sock_fd;
@@ -56,15 +58,21 @@ int main(int argc, char ** argv) {
     //Wait for user input
     cout << "prompt>";
     string cmd_str;
-//    cin >> cmd_str;
     getline(cin, cmd_str);
+    
+    
+    
+    
+
     char cmd_buf[1024];
     for(int i = 0 ; i < (int)cmd_str.size(); i++){
         cmd_buf[i] = cmd_str[i];
     }
-    
+    int sock_to_vm[NUM_VMS] = {-1};
+//    unordered_map<int,int> socket_fd_map;
     char buf[1024];
 
+    
     //Connect to all VMS
     for(int i = 0 ; i < NUM_VMS; i++){
         struct addrinfo hints, *p, *ai;
@@ -98,6 +106,7 @@ int main(int argc, char ** argv) {
             socket_fds[i] = sock_fd;
             failed[i] = false;
             num_alive ++;
+            sock_to_vm[sock_fd] = i;
         }
 
         p = NULL;
@@ -117,8 +126,9 @@ int main(int argc, char ** argv) {
             max_fd = max_fd > socket_fds[i] ? max_fd : socket_fds[i];
         }
     }
-    vector<string> results;
     bool sent_request[NUM_VMS] = {false};
+    int receive_order[NUM_VMS] = {-1};
+    
     
     //timepnt begin = clk::now();
     
@@ -133,11 +143,13 @@ int main(int argc, char ** argv) {
             if(FD_ISSET(i, &r_fds)){
                 int nbytes = 0;
                 Message my_msg;
+                int line_count = my_msg.receive_int_msg(i);
                 int length = my_msg.receive_int_msg(i);
-
+                
                 int temp = 0;
                 cout << "Receive: " << length << "\n";
-                
+                vector<string> temp_results;
+
                 while(1 && length!=0){
                     if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
                         if(nbytes <0){
@@ -150,14 +162,18 @@ int main(int argc, char ** argv) {
                     }
                     else{
                         temp += nbytes;
-                        results.push_back(buf);
-                        cout <<"Receive "<<nbytes << "from server\n" ;
+                        string temp_str(buf,nbytes);
+                        temp_results.push_back(temp_str);
+                         cout <<"Receive "<<nbytes << "from server\n" ;
                         if(temp >= length)
                             break;
                     }
                 }
                 close(i);
                 FD_CLR(i, &r_master);
+                receive_order[sock_to_vm[i]] = results.size();
+                results_count[sock_to_vm[i]] = line_count;
+                results.push_back(temp_results);
             }
             
             
@@ -175,13 +191,21 @@ int main(int argc, char ** argv) {
             }
         }
     }
-    //Print out the results
-    for(int i = 0 ; i < (int)results.size(); i++){
-        for(int j = 0 ; j < (int)results[i].size(); j++){
-            cout << results[i][j];
+    
+//    cout<< results.size();
+    for(int i = 0; i < NUM_VMS; i++){
+        if(results_count[i] >0 ){
+            vector<string> vmi_result = results[receive_order[i]];
+            for(int j = 0; j < vmi_result.size(); j ++){
+                cout << vmi_result[j];
+            }
+            cout << "Receive " << results_count[i] << " lines from VM"<< i<<"\n";
         }
     }
-    cout << "\nProgram ended!";
+    
+    
+
+    cout << "Program ended!";
     return 0;
     
 }

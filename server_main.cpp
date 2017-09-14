@@ -7,41 +7,10 @@
 //
 
 
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
+
+#include "common.h"
 #include "Message.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
-
-
 using namespace std;
-
-#define PORT				4950
-#define PORT_STR            "4950"
-#define NUM_VMS				10
-#define TIMEOUT				250
-#define STDIN               0
-
-#define MSG_LENGTH			1024
-#define HOSTNAME_LENGTH		256
-#define ERROR_LENGTH		4096
-#define BUF_SIZE            1024
-#define MAX_LINE_SZ         1024
 
 void do_grep(string cmd, int socket_fd){
     
@@ -53,18 +22,23 @@ void do_grep(string cmd, int socket_fd){
         return ;
     }
     string c;
-    
+    int count = 0;
     while(fgets(line, MAX_LINE_SZ, file)){
         stm << line ;
+        count ++;
     }
+    
+    cout << "Have: " << count << "lines";
     pclose(file);
     string result = stm.str();
     Message my_msg(result.size(), result.c_str());
-    my_msg.send_msg(socket_fd);
-    cout <<stm.str();
-
-    return;
     
+    
+    my_msg.send_int_msg(count, socket_fd);
+    
+    my_msg.send_msg(socket_fd);
+//    cout <<stm.str();
+    return;
 }
 
 int main(int argc, char ** argv) {

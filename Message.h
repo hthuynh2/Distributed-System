@@ -10,23 +10,7 @@
 #define Message_h
 
 
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include "limits.h"
+#include "common.h"
 
 
 #define ERROR INT_MIN
@@ -45,11 +29,6 @@ public:
         length = input_length;
         msg_ptr = new char[length];
         memcpy(msg_ptr, buf, length);
-//        for(int i = 0 ; i < length; i++){
-//            cout << msg_ptr[i];
-//        }
-//        cout<< "\n";
-
     }
     
     ~Message(){
@@ -99,6 +78,8 @@ public:
             perror("Message: send_int");
             return -1;
         }
+//        cout << length;
+
         while(length >0){
             if((ret = send(socket_fd, msg_ptr, length, 0)) == -1){
                 perror("Message: send");
@@ -107,7 +88,6 @@ public:
 //            cout << ret;
             length -= ret;
         }
-//        cout << length;
         return length;
     }
     
