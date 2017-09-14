@@ -28,7 +28,6 @@ void do_grep(string cmd, int socket_fd){
         count ++;
     }
     
-    cout << "Have: " << count << "lines";
     pclose(file);
     string result = stm.str();
     Message my_msg(result.size(), result.c_str());
@@ -37,7 +36,6 @@ void do_grep(string cmd, int socket_fd){
     my_msg.send_int_msg(count, socket_fd);
     
     my_msg.send_msg(socket_fd);
-//    cout <<stm.str();
     return;
 }
 
@@ -132,7 +130,6 @@ int main(int argc, char ** argv) {
                     Message my_msg;
                     int length = my_msg.receive_int_msg(i);
                     int temp = 0;
-                    cout <<  "Get : " << length << "\n";
                     while(1){
                         if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
                             if(nbytes <0){

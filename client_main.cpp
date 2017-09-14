@@ -24,7 +24,7 @@ vector<vector<string> > results;
 int results_count[NUM_VMS];
 bool failed[NUM_VMS] = {true};
 
-void do_grep_local(string cmd, int my_id){
+int do_grep_local(string cmd, int my_id){
     
     FILE* file;
     char buf[BUF_SIZE];
@@ -46,8 +46,7 @@ void do_grep_local(string cmd, int my_id){
     string result = stm.str();
     cout <<stm.str();
     cout <<"Found " << count << " lines from VM" << my_id <<"\n";
-    
-    return;
+    return count;
 }
 
 
@@ -120,7 +119,6 @@ int main(int argc, char ** argv) {
     }
 
 
-
     FD_ZERO(&r_master);
     FD_ZERO(&w_master);
     FD_ZERO(&r_fds);
@@ -155,7 +153,6 @@ int main(int argc, char ** argv) {
                 int length = my_msg.receive_int_msg(i);
                 
                 int temp = 0;
-                cout << "Receive: " << length << "\n";
                 vector<string> temp_results;
 
                 while(1 && length!=0){
@@ -172,7 +169,6 @@ int main(int argc, char ** argv) {
                         temp += nbytes;
                         string temp_str(buf,nbytes);
                         temp_results.push_back(temp_str);
-                         cout <<"Receive "<<nbytes << "from server\n" ;
                         if(temp >= length)
                             break;
                     }
@@ -188,7 +184,6 @@ int main(int argc, char ** argv) {
             if(FD_ISSET(i, &w_fds) && !sent_request[i] ){
 //              Send request to other VMs
                 sent_request[i] = true;
-                cout<< "Client send:" << cmd_str.size() <<"\n";
                 Message cmd_msg(cmd_str.size(), cmd_str.c_str());
                 
                 if(cmd_msg.send_msg(i) == -1){
@@ -200,18 +195,22 @@ int main(int argc, char ** argv) {
         }
     }
     
-//    cout<< results.size();
     for(int i = 0; i < NUM_VMS; i++){
         if(results_count[i] >0 ){
+            cout << "Found " << results_count[i] << " lines from VM"<< i<<"\n";
             vector<string> vmi_result = results[receive_order[i]];
             for(int j = 0; j < vmi_result.size(); j ++){
                 cout << vmi_result[j];
             }
-            cout << "Receive " << results_count[i] << " lines from VM"<< i<<"\n";
         }
     }
     
-    do_grep_local(cmd_str, my_id);
+    
+    int total = do_grep_local(cmd_str, my_id);
+    for(int i = 0 ; i<NUM_VMS; i++){
+        total += results_count[i];
+    }
+    cout << "Totally found: " << total << " lines\n";
 
     cout << "Program ended!";
     return 0;
