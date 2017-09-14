@@ -6,17 +6,16 @@ using namespace std;
 
 ////Change This
 string vm_hosts[NUM_VMS] = {
-//    "192.168.56.102",
-    "hthuynh2@fa17-cs425-g13-01.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-02.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-03.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-04.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-05.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-06.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-07.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-08.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-09.cs.illinois.edu",
-    "hthuynh2@fa17-cs425-g13-10.cs.illinois.edu"
+    "fa17-cs425-g13-01.cs.illinois.edu",
+    "fa17-cs425-g13-02.cs.illinois.edu",
+    "fa17-cs425-g13-03.cs.illinois.edu",
+    "fa17-cs425-g13-04.cs.illinois.edu",
+    "fa17-cs425-g13-05.cs.illinois.edu",
+    "fa17-cs425-g13-06.cs.illinois.edu",
+    "fa17-cs425-g13-07.cs.illinois.edu",
+    "fa17-cs425-g13-08.cs.illinois.edu",
+    "fa17-cs425-g13-09.cs.illinois.edu",
+    "fa17-cs425-g13-10.cs.illinois.edu"
 };
 
 int socket_fds[NUM_VMS];
@@ -61,18 +60,15 @@ int main(int argc, char ** argv) {
     getline(cin, cmd_str);
     
     
-    
-    
 
-    char cmd_buf[1024];
-    for(int i = 0 ; i < (int)cmd_str.size(); i++){
-        cmd_buf[i] = cmd_str[i];
-    }
+    char my_name[512];
+	gethostname(my_name,512);
+cout<< "My name is : " << my_name << "\n" ;
     int sock_to_vm[NUM_VMS] = {-1};
 //    unordered_map<int,int> socket_fd_map;
     char buf[1024];
 
-    
+    string t[2] = {"172.22.146.122", "172.22.146.124"};
     //Connect to all VMS
     for(int i = 0 ; i < NUM_VMS; i++){
         struct addrinfo hints, *p, *ai;
@@ -80,12 +76,15 @@ int main(int argc, char ** argv) {
         memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
-        memset(ai, 0, sizeof(struct addrinfo));
+       // memset(ai, 0, sizeof(struct addrinfo));
 
         if(getaddrinfo(vm_hosts[i].c_str(), PORT_STR, &hints, &ai) == -1){
-            cout << "Cannot getaddrinfo for VM " << i;
+        // string str_temp = t[i];   
+       	//if(getaddrinfo(t[i].c_str(), PORT_STR, &hints, &ai) == -1){
+		cout << "Cannot getaddrinfo for VM " << i;
             continue;
         }
+	
         for(p = ai; p != NULL; p = p->ai_next){
             if((sock_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
                 perror("client: socket");
@@ -113,6 +112,8 @@ int main(int argc, char ** argv) {
         sock_fd = -1;
     }
 
+
+
     FD_ZERO(&r_master);
     FD_ZERO(&w_master);
     FD_ZERO(&r_fds);
@@ -132,7 +133,7 @@ int main(int argc, char ** argv) {
     
     //timepnt begin = clk::now();
     
-    while(/*std::chrono::duration_cast<unit_milliseconds>(clk::now() - begin).count() < TIMEOUT &&*/ results.size() <(unsigned int) num_alive) {
+    while(results.size() <(unsigned int) num_alive) {
         w_fds = w_master;
         r_fds = r_master;
         if(select(max_fd+1, &r_fds, &w_fds, NULL, NULL) == -1){
