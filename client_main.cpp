@@ -24,7 +24,7 @@ vector<vector<string> > results;
 int results_count[NUM_VMS];
 bool failed[NUM_VMS] = {true};
 
-void do_grep(string cmd, int socket_fd){
+void do_grep_local(string cmd, int my_id){
     
     FILE* file;
     char buf[BUF_SIZE];
@@ -38,13 +38,14 @@ void do_grep(string cmd, int socket_fd){
 
     while(fgets(line, MAX_LINE_SZ, file)){
         stm << line;
+        count++;
     }
     
     pclose(file);
+    
     string result = stm.str();
-    Message my_msg(result.size(), result.c_str());
-    my_msg.send_msg(socket_fd);
     cout <<stm.str();
+    cout <<"Found " << count << " lines from VM" << my_id <<"\n";
     
     return;
 }
@@ -53,34 +54,40 @@ void do_grep(string cmd, int socket_fd){
 
 int main(int argc, char ** argv) {
     int sock_fd;
+    char buf[BUF_SIZE];
+
     fd_set r_master, w_master, r_fds, w_fds;
     //Wait for user input
     cout << "prompt>";
     string cmd_str;
     getline(cin, cmd_str);
     
+    char my_addr[512];
+    int my_id = -1;
+	gethostname(my_addr,512);
+    for(int i = 0 ; i < NUM_VMS; i++){
+        if(strncmp(my_addr, vm_hosts[i].c_str(), vm_hosts[i].size()) == 0){
+            my_id = i;
+            break;
+        }
+    }
     
-
-    char my_name[512];
-	gethostname(my_name,512);
-cout<< "My name is : " << my_name << "\n" ;
+    
+    cout<< "My name is : " << my_addr << "\n" ;
     int sock_to_vm[NUM_VMS] = {-1};
-//    unordered_map<int,int> socket_fd_map;
-    char buf[1024];
 
-    string t[2] = {"172.22.146.122", "172.22.146.124"};
     //Connect to all VMS
     for(int i = 0 ; i < NUM_VMS; i++){
+        if(i == my_id){
+            continue;
+        }
         struct addrinfo hints, *p, *ai;
 
         memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
-       // memset(ai, 0, sizeof(struct addrinfo));
 
         if(getaddrinfo(vm_hosts[i].c_str(), PORT_STR, &hints, &ai) == -1){
-        // string str_temp = t[i];   
-       	//if(getaddrinfo(t[i].c_str(), PORT_STR, &hints, &ai) == -1){
 		cout << "Cannot getaddrinfo for VM " << i;
             continue;
         }
@@ -204,7 +211,7 @@ cout<< "My name is : " << my_name << "\n" ;
         }
     }
     
-    
+    do_grep_local(cmd_str, my_id);
 
     cout << "Program ended!";
     return 0;
