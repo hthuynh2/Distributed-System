@@ -47,13 +47,6 @@ int do_grep_local(string cmd, int my_id){
     cout <<stm.str();
     return count;
 }
-//
-//void handle_listen(){
-//    while(){
-//        
-//    }
-//    
-//}
 
 
 
@@ -87,7 +80,12 @@ int main(int argc, char ** argv) {
         
         cout<< "My name is : " << my_addr << "\n" ;
         int sock_to_vm[NUM_VMS] = {-1};
-        
+        FD_ZERO(&r_master);
+        FD_ZERO(&w_master);
+        FD_ZERO(&r_fds);
+        FD_ZERO(&w_fds);
+        int max_fd = -1;
+
         //Connect to all VMS
         for(int i = 0 ; i < NUM_VMS; i++){
             if(i == my_id){
@@ -125,25 +123,22 @@ int main(int argc, char ** argv) {
                 failed[i] = false;
                 num_alive ++;
                 sock_to_vm[sock_fd] = i;
+                FD_SET(socket_fds[i], &r_master);
+                FD_SET(socket_fds[i], &w_master);
+                max_fd = max_fd > socket_fds[i] ? max_fd : socket_fds[i];
             }
             
             p = NULL;
             sock_fd = -1;
         }
         
-        FD_ZERO(&r_master);
-        FD_ZERO(&w_master);
-        FD_ZERO(&r_fds);
-        FD_ZERO(&w_fds);
+       
         cout << "Number of alive: " << num_alive;
-        int max_fd = -1;
-        for(int i = 0 ; i < NUM_VMS; i++){
-            if(failed[i] == false){
-                FD_SET(socket_fds[i], &r_master);
-                FD_SET(socket_fds[i], &w_master);
-                max_fd = max_fd > socket_fds[i] ? max_fd : socket_fds[i];
-            }
-        }
+//        for(int i = 0 ; i < NUM_VMS; i++){
+//            if(failed[i] == false){
+//                
+//            }
+//        }
         bool sent_request[NUM_VMS] = {false};
         int receive_order[NUM_VMS] = {-1};
         
@@ -186,7 +181,6 @@ int main(int argc, char ** argv) {
                     if(recv(i, &line_count,sizeof(int), 0) <=0){
                         close(i);
                         FD_CLR(i, &w_master);
-                        close(i);
                         FD_CLR(i, &r_master);
                     }
                     else{
