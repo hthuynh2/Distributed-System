@@ -41,10 +41,17 @@ int do_grep_local(string input_cmd, int my_id){
     }
     
     pclose(file);
-    
     string result = stm.str();
     cout <<"Found " << count << " lines from VM" << my_id <<":\n";
-    cout <<stm.str();
+    
+    ofstream file;
+    string name = "output_VM" + (char)(my_id+'1');
+    name = name + ".txt";
+    file.open (name.c_str());
+    file << results;
+    file.close();
+    
+//    cout <<stm.str();
     return count;
 }
 
