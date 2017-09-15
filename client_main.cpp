@@ -186,15 +186,23 @@ int main(int argc, char ** argv) {
                 
                 
                 if(FD_ISSET(i, &w_fds) && !sent_request[i] ){
-                    //              Send request to other VMs
-                    sent_request[i] = true;
-                    Message cmd_msg(cmd_str.size(), cmd_str.c_str());
-                    
-                    if(cmd_msg.send_msg(i) == -1){
-                        perror("Client: send");
+                    if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
+                        sent_request[i] = true;
+                        FD_CLR(i, &w_master);
                     }
-                    
-                    FD_CLR(i, &w_master);
+                    else{
+                        //  Send request to other VMs
+                        sent_request[i] = true;
+                        Message cmd_msg(cmd_str.size(), cmd_str.c_str());
+                        
+                        if(cmd_msg.send_msg(i) == -1){
+                            perror("Client: send");
+                        }
+                        
+                        FD_CLR(i, &w_master);
+                    }
+
+
                 }
             }
         }
