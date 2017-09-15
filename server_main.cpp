@@ -130,6 +130,7 @@ int main(int argc, char ** argv) {
                     
                     int length;
                     if(recv(socket_fd, &length,sizeof(int), 0) <=0){
+                        cout << "Here!!";
                         close(i);
                         FD_CLR(i, &master);
                         continue;
