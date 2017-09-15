@@ -1,6 +1,7 @@
 
 #include "common.h"
 #include "Message.h"
+#include <thread>
 using namespace std;
 
 
@@ -45,6 +46,13 @@ int do_grep_local(string cmd, int my_id){
     cout <<stm.str();
     return count;
 }
+//
+//void handle_listen(){
+//    while(){
+//        
+//    }
+//    
+//}
 
 
 
@@ -122,7 +130,6 @@ int main(int argc, char ** argv) {
             sock_fd = -1;
         }
         
-        
         FD_ZERO(&r_master);
         FD_ZERO(&w_master);
         FD_ZERO(&r_fds);
@@ -140,7 +147,8 @@ int main(int argc, char ** argv) {
         int receive_order[NUM_VMS] = {-1};
         
         
-        //timepnt begin = clk::now();
+        
+        
         
         while(results.size() <(unsigned int) num_alive) {
             w_fds = w_master;
@@ -198,12 +206,6 @@ int main(int argc, char ** argv) {
                 
                 
                 if(FD_ISSET(i, &w_fds) && !sent_request[i] ){
-//                    if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
-//                        sent_request[i] = true;
-//                        FD_CLR(i, &w_master);
-//                    }
-//                    else{
-                        //  Send request to other VMs
                         sent_request[i] = true;
                         Message cmd_msg(cmd_str.size(), cmd_str.c_str());
                         
@@ -212,7 +214,6 @@ int main(int argc, char ** argv) {
                         }
                         
                         FD_CLR(i, &w_master);
-//                    }
 
 
                 }
