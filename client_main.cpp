@@ -32,7 +32,7 @@ int do_grep_local(string input_cmd, int my_id){
     if(!(file = popen(cmd.c_str(), "r"))){
         return 0;
     }
-    string c;
+    //string c;
     int count = 0;
 
     while(fgets(line, MAX_LINE_SZ, file)){
@@ -45,10 +45,13 @@ int do_grep_local(string input_cmd, int my_id){
     cout <<"Found " << count << " lines from VM" << my_id <<":\n";
     
     ofstream out_file;
-    string name = "output_VM" + (char)(my_id+'1');
-    name = name + ".txt";
+    
+string name("output_VM");
+name += (char)(my_id+'1');
+name += ".txt";
+
     out_file.open (name.c_str());
-    out_file << results;
+    out_file << result;
     out_file.close();
     
 //    cout <<stm.str();
@@ -57,8 +60,11 @@ int do_grep_local(string input_cmd, int my_id){
 
 void writeToFile(vector<string>& vmi_result, int i){
     ofstream file;
-    string name = "output_VM" + (char)(i+'1');
-	name = name + ".txt";
+	string name("output_VM");
+	name += (char)(i+'1');
+	name += ".txt";
+    //string name = "output_VM" + (char)(i+'1');
+//	name = name + ".txt";
     file.open (name.c_str());
     for(int j = 0; j < vmi_result.size(); j ++){
         file << vmi_result[j];
