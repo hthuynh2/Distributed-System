@@ -128,19 +128,19 @@ int main(int argc, char ** argv) {
                     int nbytes = 0;
                     Message my_msg;
                     
-                    int length;
-                    if(recv(socket_fd, &length,sizeof(int), 0) <=0){
-                        cout << "Here!!";
-                        close(i);
-                        FD_CLR(i, &master);
-                        continue;
-                    }
-                    
-                    length = ntohl(length);
+//                    int length;
+//                    if(recv(socket_fd, &length,sizeof(int), 0) <=0){
+//                        cout << "Here!!";
+//                        close(i);
+//                        FD_CLR(i, &master);
+//                        continue;
+//                    }
+//                    
+//                    length = ntohl(length);
 
-//                    int length = my_msg.receive_int_msg(i);
+                    int length = my_msg.receive_int_msg(i);
                     int temp = 0;
-                    while(1){
+                    while(1 && length >0){
                         if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
                             if(nbytes <0){
                                 perror("server: recv");
@@ -156,8 +156,10 @@ int main(int argc, char ** argv) {
                                 break;
                         }
                     }
-                    string my_str1(buf,length);
-                    do_grep(my_str1, i);
+                    if(length > 0 ){
+                        string my_str1(buf,length);
+                        do_grep(my_str1, i);
+                    }
 
                     close(i);
                     FD_CLR(i,&master);
