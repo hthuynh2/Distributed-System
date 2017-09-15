@@ -129,7 +129,7 @@ int main(int argc, char ** argv) {
                     Message my_msg;
                     
                     int length;
-                    if(recv(socket_fd, &number,sizeof(int), 0) <=0){
+                    if(recv(socket_fd, &length,sizeof(int), 0) <=0){
                         close(i);
                         FD_CLR(i, &master);
                         continue;
