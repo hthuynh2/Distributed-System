@@ -161,7 +161,7 @@ int main(int argc, char ** argv) {
                                 perror("server: recv");
                             }
                             else{
-                                cout << "server: socket " << i << "hung up\n";
+//                                cout << "server: socket " << i << "hung up\n";
                             }
                             break;
                         }

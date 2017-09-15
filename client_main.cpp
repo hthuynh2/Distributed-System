@@ -32,7 +32,6 @@ int do_grep_local(string input_cmd, int my_id){
     if(!(file = popen(cmd.c_str(), "r"))){
         return 0;
     }
-    //string c;
     int count = 0;
 
     while(fgets(line, MAX_LINE_SZ, file)){
@@ -46,15 +45,14 @@ int do_grep_local(string input_cmd, int my_id){
     
     ofstream out_file;
     
-string name("output_VM");
-name += (char)(my_id+'1');
-name += ".txt";
+    string name("output_VM");
+    name += (char)(my_id+'1');
+    name += ".txt";
 
     out_file.open (name.c_str());
     out_file << result;
     out_file.close();
     
-//    cout <<stm.str();
     return count;
 }
 
@@ -63,14 +61,12 @@ void writeToFile(vector<string>& vmi_result, int i){
 	string name("output_VM");
 	name += (char)(i+'1');
 	name += ".txt";
-    //string name = "output_VM" + (char)(i+'1');
-//	name = name + ".txt";
+
     file.open (name.c_str());
     for(int j = 0; j < vmi_result.size(); j ++){
         file << vmi_result[j];
     }
     file.close();
-  
 }
 
 
@@ -121,18 +117,18 @@ int main(int argc, char ** argv) {
             hints.ai_socktype = SOCK_STREAM;
             
             if(getaddrinfo(vm_hosts[i].c_str(), PORT_STR, &hints, &ai) == -1){
-                cout << "Cannot getaddrinfo for VM " << i;
+//                cout << "Cannot getaddrinfo for VM " << i;
                 continue;
             }
             
             for(p = ai; p != NULL; p = p->ai_next){
                 if((sock_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
-                    perror("client: socket");
+//                    perror("client: socket");
                     continue;
                 }
                 if(connect(sock_fd, p->ai_addr, p->ai_addrlen) == -1){
                     close(sock_fd);
-                    perror("client: connect");
+//                    perror("client: connect");
                     continue;
                 }
                 break;
@@ -164,7 +160,6 @@ int main(int argc, char ** argv) {
             if(select(max_fd+1, &r_fds, &w_fds, NULL, NULL) == -1){
                 perror("client: select");
                 exit(4);
-		
             }
             for(int i = 1 ; i <= max_fd; i++){
                 if(FD_ISSET(i, &r_fds)){
@@ -231,9 +226,6 @@ int main(int argc, char ** argv) {
                 cout <<"Found " << results_count[i] << " lines from VM" << i <<":\n";
                 vector<string> vmi_result = results[receive_order[i]];
                 writeToFile(vmi_result, i);
-//                for(int j = 0; j < vmi_result.size(); j ++){
-//                    cout << vmi_result[j];
-//                }
             }
         }
         
