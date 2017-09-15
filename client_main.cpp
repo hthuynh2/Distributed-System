@@ -51,12 +51,13 @@ int do_grep_local(string input_cmd, int my_id){
 void writeToFile(vector<string>& vmi_result, int i){
     ofstream file;
     string name = "output_VM" + (char)(i+'1');
-    file.open (name);
+	name = name + ".txt";
+    file.open (name.c_str());
     for(int j = 0; j < vmi_result.size(); j ++){
         file << vmi_result[j];
     }
     file.close();
-    
+  
 }
 
 
