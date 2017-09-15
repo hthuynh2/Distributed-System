@@ -43,7 +43,7 @@ int do_grep_local(string cmd, int my_id){
     
     string result = stm.str();
     cout << "asdasdasdasdasd\n";
-    cout <<"Found " << count << " lines from VM" << my_id <<":\n";
+    cout <<"Found abcxyz " << count << " lines from VM" << my_id <<":\n";
     cout <<"aaaaa \n";
     cout <<stm.str();
     return count;
@@ -56,7 +56,7 @@ int main(int argc, char ** argv) {
         int socket_fds[NUM_VMS];
         int num_alive = 0;
         vector<vector<string> > results;
-        int results_count[NUM_VMS];
+        int results_count[NUM_VMS] = {0};
         bool failed[NUM_VMS] = {true};
         int sock_fd;
         char buf[BUF_SIZE];
@@ -235,7 +235,7 @@ int main(int argc, char ** argv) {
             }
         }
         
-        for(int i = 0; i < NUM_VMS; i++){
+       for(int i = 0; i < NUM_VMS; i++){
             if(results_count[i] >0 ){
                 cout <<"Found " << results_count[i] << " lines from VM" << i <<":\n";
                 vector<string> vmi_result = results[receive_order[i]];
