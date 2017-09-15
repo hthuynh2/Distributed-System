@@ -12,12 +12,26 @@
 #include "Message.h"
 using namespace std;
 
-void do_grep(string cmd, int socket_fd){
-    
+string vm_hosts[NUM_VMS] = {
+    "fa17-cs425-g13-01.cs.illinois.edu",
+    "fa17-cs425-g13-02.cs.illinois.edu",
+    "fa17-cs425-g13-03.cs.illinois.edu",
+    "fa17-cs425-g13-04.cs.illinois.edu",
+    "fa17-cs425-g13-05.cs.illinois.edu",
+    "fa17-cs425-g13-06.cs.illinois.edu",
+    "fa17-cs425-g13-07.cs.illinois.edu",
+    "fa17-cs425-g13-08.cs.illinois.edu",
+    "fa17-cs425-g13-09.cs.illinois.edu",
+    "fa17-cs425-g13-10.cs.illinois.edu"
+};
+int my_id = -1;
+
+void do_grep(string input_cmd, int socket_fd){
     FILE* file;
     char buf[BUF_SIZE];
     ostringstream stm ;
     char line[MAX_LINE_SZ] ;
+    string cmd = input_cmd;
     if(!(file = popen(cmd.c_str(), "r"))){
         return ;
     }
@@ -51,6 +65,16 @@ int main(int argc, char ** argv) {
     struct sockaddr_storage remoteaddr; // client address
 
     char buf[1024];
+    
+    char my_addr[512];
+    gethostname(my_addr,512);
+    for(int i = 0 ; i < NUM_VMS; i++){
+        if(strncmp(my_addr, vm_hosts[i].c_str(), vm_hosts[i].size()) == 0){
+            my_id = i;
+            break;
+        }
+    }
+    
     
     //Set up Socket
     memset(&hints, 0, sizeof(hints));
@@ -127,16 +151,6 @@ int main(int argc, char ** argv) {
                 else{
                     int nbytes = 0;
                     Message my_msg;
-                    
-//                    int length;
-//                    if(recv(socket_fd, &length,sizeof(int), 0) <=0){
-//                        cout << "Here!!";
-//                        close(i);
-//                        FD_CLR(i, &master);
-//                        continue;
-//                    }
-//                    
-//                    length = ntohl(length);
 
                     int length = my_msg.receive_int_msg(i);
                     int temp = 0;

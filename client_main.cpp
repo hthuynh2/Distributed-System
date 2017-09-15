@@ -42,9 +42,7 @@ int do_grep_local(string cmd, int my_id){
     pclose(file);
     
     string result = stm.str();
-    cout << "asdasdasdasdasd\n";
-    cout <<"Found abcxyz " << count << " lines from VM" << my_id <<":\n";
-    cout <<"aaaaa \n";
+    cout <<"Found " << count << " lines from VM" << my_id <<":\n";
     cout <<stm.str();
     return count;
 }
@@ -79,7 +77,6 @@ int main(int argc, char ** argv) {
             }
         }
         
-        cout<< "My name is : " << my_addr << "\n" ;
         int sock_to_vm[NUM_VMS] = {-1};
         FD_ZERO(&r_master);
         FD_ZERO(&w_master);
@@ -116,7 +113,6 @@ int main(int argc, char ** argv) {
                 break;
             }
             if(p == NULL){
-//                cout << "Fail to connect to VM" << i << "\n";
                 continue;
             }
             if(sock_fd != -1){
@@ -134,44 +130,16 @@ int main(int argc, char ** argv) {
         }
         
        
-        cout << "Number of alive: " << num_alive;
-//        for(int i = 0 ; i < NUM_VMS; i++){
-//            if(failed[i] == false){
-//                
-//            }
-//        }
         bool sent_request[NUM_VMS] = {false};
         int receive_order[NUM_VMS] = {-1};
-        
-        
-        
-        
-        
+
         while(results.size() <(unsigned int) num_alive) {
             w_fds = w_master;
             r_fds = r_master;
             if(select(max_fd+1, &r_fds, &w_fds, NULL, NULL) == -1){
-                cout << "erro num = " << errno << "\n";
-	/*	if(errno == EBADF){
-			// Handle bad file descriptor
-			cout << "STOP" << "\n";
-			for(int i = 0 ; i <= max_fd; i++){
-				struct stat stat_buf;
-				if(fstat(i, &stat_buf) == -1){
-				cout << "Inside fstat\n";
-					FD_CLR(i, &w_master);
-					FD_CLR(i, &r_master);
-					FD_CLR(i, &r_fds);
-					FD_CLR(i, &w_fds);
-					num_alive--;
-				}
-			}
-			continue;
-		}
-		else{
-		*/	perror("client: select");
-        	        exit(4);
-		//}
+                perror("client: select");
+                exit(4);
+		
             }
             for(int i = 1 ; i <= max_fd; i++){
                 if(FD_ISSET(i, &r_fds)){
@@ -186,7 +154,6 @@ int main(int argc, char ** argv) {
                     }
                     else{
                         line_count = ntohl(line_count);
-                        //  int line_count = my_msg.receive_int_msg(i);
                         int length = my_msg.receive_int_msg(i);
                         
                         int temp = 0;
@@ -219,7 +186,6 @@ int main(int argc, char ** argv) {
 
                 }
                 
-                
                 if(FD_ISSET(i, &w_fds) && !sent_request[i] ){
                         sent_request[i] = true;
                         Message cmd_msg(cmd_str.size(), cmd_str.c_str());
@@ -251,7 +217,6 @@ int main(int argc, char ** argv) {
             total += results_count[i];
         }
         cout << "Totally found: " << total << " lines\n";
-        
     }
     return 0;
     
