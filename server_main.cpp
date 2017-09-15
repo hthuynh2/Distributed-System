@@ -31,7 +31,8 @@ void do_grep(string input_cmd, int socket_fd){
     char buf[BUF_SIZE];
     ostringstream stm ;
     char line[MAX_LINE_SZ] ;
-    string cmd = input_cmd;
+    string cmd = input_cmd + " " + "vm" + to_string(my_id+1) + ".log";
+
     if(!(file = popen(cmd.c_str(), "r"))){
         return ;
     }

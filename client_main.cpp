@@ -22,10 +22,11 @@ string vm_hosts[NUM_VMS] = {
 
 
 
-int do_grep_local(string cmd, int my_id){
+int do_grep_local(string input_cmd, int my_id){
     
     FILE* file;
     char buf[BUF_SIZE];
+    string cmd = input_cmd + " " + "vm" + to_string(my_id+1) + ".log";
     ostringstream stm ;
     char line[MAX_LINE_SZ] ;
     if(!(file = popen(cmd.c_str(), "r"))){
