@@ -1,7 +1,8 @@
 
 #include "common.h"
 #include "Message.h"
-#include <thread>
+#include "sys/stat.h"
+
 using namespace std;
 
 
@@ -134,7 +135,7 @@ int main(int argc, char ** argv) {
         FD_ZERO(&w_master);
         FD_ZERO(&r_fds);
         FD_ZERO(&w_fds);
-        
+        cout << "Number of alive: " << num_alive;
         int max_fd = -1;
         for(int i = 0 ; i < NUM_VMS; i++){
             if(failed[i] == false){
@@ -154,8 +155,27 @@ int main(int argc, char ** argv) {
             w_fds = w_master;
             r_fds = r_master;
             if(select(max_fd+1, &r_fds, &w_fds, NULL, NULL) == -1){
-                perror("client: select");
-                exit(4);
+                cout << "erro num = " << errno << "\n";
+	/*	if(errno == EBADF){
+			// Handle bad file descriptor
+			cout << "STOP" << "\n";
+			for(int i = 0 ; i <= max_fd; i++){
+				struct stat stat_buf;
+				if(fstat(i, &stat_buf) == -1){
+				cout << "Inside fstat\n";
+					FD_CLR(i, &w_master);
+					FD_CLR(i, &r_master);
+					FD_CLR(i, &r_fds);
+					FD_CLR(i, &w_fds);
+					num_alive--;
+				}
+			}
+			continue;
+		}
+		else{
+		*/	perror("client: select");
+        	        exit(4);
+		//}
             }
             for(int i = 1 ; i <= max_fd; i++){
                 if(FD_ISSET(i, &r_fds)){
