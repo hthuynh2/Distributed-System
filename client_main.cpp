@@ -42,8 +42,9 @@ int do_grep_local(string cmd, int my_id){
     pclose(file);
     
     string result = stm.str();
+    cout << "asdasdasdasdasd\n";
     cout <<"Found " << count << " lines from VM" << my_id <<":\n";
-
+    cout <<"aaaaa \n";
     cout <<stm.str();
     return count;
 }
