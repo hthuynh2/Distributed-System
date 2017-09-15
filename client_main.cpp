@@ -153,44 +153,56 @@ int main(int argc, char ** argv) {
                 if(FD_ISSET(i, &r_fds)){
                     int nbytes = 0;
                     Message my_msg;
-                    int line_count = my_msg.receive_int_msg(i);
-                    int length = my_msg.receive_int_msg(i);
                     
-                    int temp = 0;
-                    vector<string> temp_results;
-                    
-                    while(1 && length!=0){
-                        if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
-                            if(nbytes <0){
-                                perror("client: recv");
+                    int line_count;
+                    if(recv(i, &line_count,sizeof(int), 0) <=0){
+                        close(i);
+                        FD_CLR(i, &w_master);
+                        close(i);
+                        FD_CLR(i, &r_master);
+                    }
+                    else{
+                        line_count = ntohl(line_count);
+                        //  int line_count = my_msg.receive_int_msg(i);
+                        int length = my_msg.receive_int_msg(i);
+                        
+                        int temp = 0;
+                        vector<string> temp_results;
+                        
+                        while(1 && length!=0){
+                            if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
+                                if(nbytes <0){
+                                    perror("client: recv");
+                                }
+                                else{
+                                    cout << "client: socket " << i << "hung up\n";
+                                }
+                                break;
                             }
                             else{
-                                cout << "client: socket " << i << "hung up\n";
+                                temp += nbytes;
+                                string temp_str(buf,nbytes);
+                                temp_results.push_back(temp_str);
+                                if(temp >= length)
+                                    break;
                             }
-                            break;
                         }
-                        else{
-                            temp += nbytes;
-                            string temp_str(buf,nbytes);
-                            temp_results.push_back(temp_str);
-                            if(temp >= length)
-                                break;
-                        }
+                        close(i);
+                        FD_CLR(i, &r_master);
+                        receive_order[sock_to_vm[i]] = results.size();
+                        results_count[sock_to_vm[i]] = line_count;
+                        results.push_back(temp_results);
                     }
-                    close(i);
-                    FD_CLR(i, &r_master);
-                    receive_order[sock_to_vm[i]] = results.size();
-                    results_count[sock_to_vm[i]] = line_count;
-                    results.push_back(temp_results);
+
                 }
                 
                 
                 if(FD_ISSET(i, &w_fds) && !sent_request[i] ){
-                    if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
-                        sent_request[i] = true;
-                        FD_CLR(i, &w_master);
-                    }
-                    else{
+//                    if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
+//                        sent_request[i] = true;
+//                        FD_CLR(i, &w_master);
+//                    }
+//                    else{
                         //  Send request to other VMs
                         sent_request[i] = true;
                         Message cmd_msg(cmd_str.size(), cmd_str.c_str());
@@ -200,7 +212,7 @@ int main(int argc, char ** argv) {
                         }
                         
                         FD_CLR(i, &w_master);
-                    }
+//                    }
 
 
                 }
