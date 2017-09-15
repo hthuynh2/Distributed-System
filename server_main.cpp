@@ -125,10 +125,19 @@ int main(int argc, char ** argv) {
                     }
                 }
                 else{
-                    
                     int nbytes = 0;
                     Message my_msg;
-                    int length = my_msg.receive_int_msg(i);
+                    
+                    int length;
+                    if(recv(socket_fd, &number,sizeof(int), 0) <=0){
+                        close(i);
+                        FD_CLR(i, &master);
+                        continue;
+                    }
+                    
+                    length = ntohl(length);
+
+//                    int length = my_msg.receive_int_msg(i);
                     int temp = 0;
                     while(1){
                         if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
