@@ -48,6 +48,16 @@ int do_grep_local(string input_cmd, int my_id){
     return count;
 }
 
+void writeToFile(vector<string>& vmi_result, int i){
+    ofstream file;
+    string name = "output_VM" + (char)(i+'1');
+    file.open (name);
+    for(int j = 0; j < vmi_result.size(); j ++){
+        file << vmi_result[j];
+    }
+    file.close();
+    
+}
 
 
 int main(int argc, char ** argv) {
@@ -206,12 +216,12 @@ int main(int argc, char ** argv) {
             if(results_count[i] >0 ){
                 cout <<"Found " << results_count[i] << " lines from VM" << i <<":\n";
                 vector<string> vmi_result = results[receive_order[i]];
-                for(int j = 0; j < vmi_result.size(); j ++){
-                    cout << vmi_result[j];
-                }
+                writeToFile(vmi_result, i);
+//                for(int j = 0; j < vmi_result.size(); j ++){
+//                    cout << vmi_result[j];
+//                }
             }
         }
-        
         
         int total = do_grep_local(cmd_str, my_id);
         for(int i = 0 ; i<NUM_VMS; i++){
