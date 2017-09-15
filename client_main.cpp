@@ -200,23 +200,24 @@ int main(int argc, char ** argv) {
                 }
             }
         }
-        
-       for(int i = 0; i < NUM_VMS; i++){
-            if(results_count[i] >0 ){
-                cout <<"Found " << results_count[i] << " lines from VM" << i <<":\n";
-                vector<string> vmi_result = results[receive_order[i]];
-                for(int j = 0; j < vmi_result.size(); j ++){
-                    cout << vmi_result[j];
-                }
-            }
-        }
-        
-        
+//        
+//       for(int i = 0; i < NUM_VMS; i++){
+//            if(results_count[i] >0 ){
+//                cout <<"Found " << results_count[i] << " lines from VM" << i <<":\n";
+//                vector<string> vmi_result = results[receive_order[i]];
+//                for(int j = 0; j < vmi_result.size(); j ++){
+//                    cout << vmi_result[j];
+//                }
+//            }
+//        }
+//        
+//        
         int total = do_grep_local(cmd_str, my_id);
-        for(int i = 0 ; i<NUM_VMS; i++){
-            total += results_count[i];
-        }
-        cout << "Totally found: " << total << " lines\n";
+//        for(int i = 0 ; i<NUM_VMS; i++){
+//            total += results_count[i];
+//        }
+//        cout << "Totally found: " << total << " lines\n";
+//
     }
     return 0;
     
