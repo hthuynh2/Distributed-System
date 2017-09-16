@@ -121,30 +121,34 @@ int main(int argc, char ** argv) {
                     }
                 }
                 else{               //Have msg from clients
-                    int nbytes = 0;
-                    Message my_msg;
-                    
-                    //Get msg from clients
-                    int length = my_msg.receive_int_msg(i);
-                    int temp = 0;
-                    while(1 && length >0){
-                        if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
-                            if(nbytes <0)
-                                perror("server: recv");
-                            break;
-                        }
-                        else{
-                            temp += nbytes;
-                            if(temp >= length)
+                    //////////
+                    if (!fork()) { // this is the child process
+                        int nbytes = 0;
+                        Message my_msg;
+                        //Get msg from clients
+                        int length = my_msg.receive_int_msg(i);
+                        int temp = 0;
+                        while(1 && length >0){
+                            if((nbytes = (int)recv(i, buf, sizeof(buf), 0))  <= 0){
+                                if(nbytes <0)
+                                    perror("server: recv");
                                 break;
+                            }
+                            else{
+                                temp += nbytes;
+                                if(temp >= length)
+                                    break;
+                            }
+                        }
+                        close(i);
+                        exit(0);
+                        if(length > 0 ){
+                            string my_str1(buf,length);
+                            do_grep(my_str1, i);
                         }
                     }
-                    
+                    //////////////////
                     //Do grep on local VM and send result back to client
-                    if(length > 0 ){
-                        string my_str1(buf,length);
-                        do_grep(my_str1, i);
-                    }
                     
                     //Close connection
                     close(i);
