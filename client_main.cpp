@@ -177,7 +177,7 @@ int main(int argc, char ** argv) {
         //Write result to file
        for(int i = 0; i < NUM_VMS; i++){
             if(results_count[i] >0 ){
-                cout <<"Found " << results_count[i] << " lines from VM" << i <<":\n";
+                cout <<"VM" <<i+i << " found: " << results_count[i] << " lines.\n";
                 vector<string> vmi_result = results[receive_order[i]];
                 writeToFile(vmi_result, i);
             }
@@ -189,7 +189,7 @@ int main(int argc, char ** argv) {
         for(int i = 0 ; i<NUM_VMS; i++){
             total += results_count[i];
         }
-        cout << "Totally found: " << total << " lines\n";
+        cout << "Totally found: " << total << " lines.\n";
     }
     return 0;
 }
