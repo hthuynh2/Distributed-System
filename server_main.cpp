@@ -123,7 +123,8 @@ int main(int argc, char ** argv) {
                 else{               //Have msg from clients
                     //////////
                     if (!fork()) { // this is the child process
-                        int nbytes = 0;
+//	cout << "here!!!\n"; 
+                       int nbytes = 0;
                         Message my_msg;
                         //Get msg from clients
                         int length = my_msg.receive_int_msg(i);
@@ -140,12 +141,15 @@ int main(int argc, char ** argv) {
                                     break;
                             }
                         }
-                        close(i);
-                        exit(0);
+			//cout << length <<"\n";  
+                    cout << length<<"\n";
                         if(length > 0 ){
                             string my_str1(buf,length);
-                            do_grep(my_str1, i);
+                    		cout << my_str1<<"\n";
+			        do_grep(my_str1, i);
                         }
+			close(i);
+			exit(0);
                     }
                     //////////////////
                     //Do grep on local VM and send result back to client
