@@ -227,9 +227,6 @@ int do_grep_local(string input_cmd, int my_id){
     pclose(file);
     result = stm.str();
     
-    //Print out number of line found
-    cout <<"VM" <<my_id+1 << " found: " << count << " lines.\n";
-
     //Store result to output file
     string name("output_VM");
     name += (char)(my_id+'1');
