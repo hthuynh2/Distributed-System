@@ -177,16 +177,20 @@ int main(int argc, char ** argv) {
         //Write result to file
        for(int i = 0; i < NUM_VMS; i++){
             if(results_count[i] >0 ){
-                cout <<"VM" <<i+i << " found: " << results_count[i] << " lines.\n";
                 vector<string> vmi_result = results[receive_order[i]];
                 writeToFile(vmi_result, i);
             }
         }
         //Do grep on local machine
-        int total = do_grep_local(cmd_str, my_id);
+        results_count[my_id] = do_grep_local(cmd_str, my_id);
         
-        //Calculate number of total lines
+        
+        int total = 0;
+        //Print out number of lines found from each VM and Calculate number of total lines
         for(int i = 0 ; i<NUM_VMS; i++){
+            if(results_count[i] > 0){
+                cout <<"VM" <<i+1 << " found: " << results_count[i] << " lines.\n";
+            }
             total += results_count[i];
         }
         cout << "Totally found: " << total << " lines.\n";
@@ -224,8 +228,8 @@ int do_grep_local(string input_cmd, int my_id){
     result = stm.str();
     
     //Print out number of line found
-    cout <<"Found " << count << " lines from VM" << my_id <<":\n";
-    
+    cout <<"VM" <<my_id+1 << " found: " << count << " lines.\n";
+
     //Store result to output file
     string name("output_VM");
     name += (char)(my_id+'1');
