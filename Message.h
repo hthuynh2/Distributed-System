@@ -12,7 +12,6 @@
 
 #include "common.h"
 
-
 #define ERROR INT_MIN
 using namespace std;
 class Message{
@@ -39,6 +38,9 @@ public:
         msg_ptr = NULL;
     }
     
+    /*
+     This method append the input char buf to the end of the msg and update the length
+     */
     void append(int input_length,  char* buf){
         char* t = new char[input_length + length];
         if(length != 0 && msg_ptr!= NULL){
@@ -50,10 +52,11 @@ public:
         msg_ptr = t;
         return;
     }
-    
+    /*
+     This method convert input integer from from host byte order to network byte order and send it to the input socket_fd
+     */
     int send_int_msg(int number , int socket_fd){
         int ret;
-        //Convert from host byte order to network byte order
         int net_number = htonl(number);
         if((ret = send(socket_fd, &net_number, sizeof(net_number), 0)) == -1){
             return -1;
@@ -61,6 +64,9 @@ public:
         return ret;
     }
     
+    /*
+     This method receive the integer, and convert it from network byte order to host byte order
+     */
     int receive_int_msg(int socket_fd){
         int number;
         if(recv(socket_fd, &number,sizeof(int), 0) == -1){
@@ -71,21 +77,20 @@ public:
         return number;
     }
     
-    
+    /*
+     This method send the msg length and then the msg to the input socket_fd
+     */
     int send_msg(int socket_fd){
         int ret;
         if(send_int_msg(length, socket_fd) == -1){
             perror("Message: send_int");
             return -1;
         }
-//        cout << length;
-
         while(length >0){
             if((ret = send(socket_fd, msg_ptr, length, 0)) == -1){
                 perror("Message: send");
                 return -1;
             }
-//            cout << ret;
             length -= ret;
         }
         return length;
@@ -93,7 +98,6 @@ public:
     
     
 };
-
 
 
 

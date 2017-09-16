@@ -22,8 +22,6 @@
 #define MAX_LINE_SZ         1024
 
 
-
-
 #include <stdio.h>
 #include <iostream>
 #include <vector>
