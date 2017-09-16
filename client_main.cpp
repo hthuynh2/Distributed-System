@@ -104,11 +104,15 @@ int main(int argc, char ** argv) {
             p = NULL;
             sock_fd = -1;
         }
+        struct timeval start, end;
+        gettimeofday (&start, NULL);
         
-       
-
         //Loop to send request and wait for other VMs to response
-        while(results.size() <(unsigned int) num_alive) {
+        while(results.size() <(unsigned int) num_alive ) {
+            gettimeofday(&end, NULL);
+            //Time out, break the loop
+            if(end.tv_sec - start.tv_sec > TIMEOUT)
+                break;
             w_fds = w_master;
             r_fds = r_master;
             if(select(max_fd+1, &r_fds, &w_fds, NULL, NULL) == -1){

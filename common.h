@@ -13,7 +13,7 @@
 #define PORT				4950
 #define PORT_STR            "4950"
 #define NUM_VMS				10
-#define TIMEOUT				250
+#define TIMEOUT				10  //in sec
 #define STDIN               0
 #define MSG_LENGTH			1024
 #define HOSTNAME_LENGTH		256
@@ -43,6 +43,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <sys/time.h>
 //#include <unordered_map>
 
 
